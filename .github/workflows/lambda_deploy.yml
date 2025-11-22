@@ -1,17 +1,18 @@
-name: Deploy Website to S3 Bucket
+name: Deploy Python functions to AWS Lambda
 
 on:
   push:
     branches:
       - 'main'
     paths:
-      - 'index.html'
+      - 'lambda/get_all_inventory_items/lambda_function.py'
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Set AWS credentials
         uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
@@ -19,5 +20,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
-      - name: Copy website to S3
-        run: aws s3 sync . s3://inventoryapp.rrc.ca --exclude "*" --include "index.html"
+      - name: Zip the get_all_inventory_items Lambda function
+        run: zip function.zip lambda_function.py
+        working-directory: ./lambda/get_all_inventory_items
+      - name: Update Lambda function code
+        run: aws lambda update-function-code --function-name get_all_inventory_items --zip-file fileb://function.zip --publish
+        working-directory: ./lambda/get_all_inventory_items
+      - name: Cleanup get_all_inventory_items zip
+        run: rm function.zip
+        working-directory: ./lambda/get_all_inventory_items
