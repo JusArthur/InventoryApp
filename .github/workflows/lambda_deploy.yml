@@ -5,8 +5,7 @@ on:
     branches:
       - 'main'
     paths:
-      - 'lambda/**/lambda_function.py'  # 监控所有 Lambda 文件
-
+      - 'lambda/**/lambda_function.py'  
 jobs:
   deploy:
     runs-on: ubuntu-latest
