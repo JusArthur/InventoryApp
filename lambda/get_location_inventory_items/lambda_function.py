@@ -9,7 +9,7 @@ def lambda_handler(event, context):
 
     response = table.query(
         IndexName="location-index",
-        KeyConditionExpression=Key("item_location_id").eq(location_id)
+        KeyConditionExpression=Key("location_id").eq(location_id)
     )
 
     return {
