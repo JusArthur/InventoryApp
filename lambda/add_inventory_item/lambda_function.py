@@ -1,6 +1,7 @@
 import boto3
 import json
 import uuid
+from decimal import Decimal
 
 table = boto3.resource('dynamodb').Table('Inventory')
 
@@ -8,7 +9,6 @@ def lambda_handler(event, context):
     print("EVENT:", event)  # Debug
 
     try:
-        # Handle body as string or dict
         body = event.get("body")
         if isinstance(body, str):
             body = json.loads(body)
@@ -20,7 +20,7 @@ def lambda_handler(event, context):
             "item_name": body.get("item_name", ""),
             "item_description": body.get("item_description", ""),
             "item_qty_on_hand": int(body.get("item_qty_on_hand", 0)),
-            "item_price": float(body.get("item_price", 0)),
+            "item_price": Decimal(str(body.get("item_price", 0))),
             "item_location_id": int(body.get("item_location_id", 0))
         }
 
@@ -28,7 +28,7 @@ def lambda_handler(event, context):
 
         return {
             "statusCode": 200,
-            "body": json.dumps({"message": "item added", "item": new_item})
+            "body": json.dumps({"message": "item added", "item": new_item}, default=str)
         }
 
     except Exception as e:
