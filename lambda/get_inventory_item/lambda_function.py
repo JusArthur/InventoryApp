@@ -1,49 +1,40 @@
 import boto3
 import json
 from decimal import Decimal
-from boto3.dynamodb.conditions import Key
 
 table = boto3.resource('dynamodb').Table('Inventory')
 
-def decimal_to_native(obj):
-    if isinstance(obj, Decimal):
-        if obj % 1 == 0:
-            return int(obj)
-        else:
-            return float(obj)
-    raise TypeError
-
 def lambda_handler(event, context):
+    path_params = event.get("pathParameters", {})
+    item_id = path_params.get("id")  # only partition key needed
+
+    if not item_id:
+        return {
+            "statusCode": 400,
+            "body": json.dumps({"message": "Missing item_id in path"})
+        }
+
     try:
-        item_id = event.get("pathParameters", {}).get("id")
-
-        if not item_id:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"error": "Missing item_id in path"})
-            }
-
-        # Query by PK only
+        # Query all items with this partition key
         response = table.query(
-            KeyConditionExpression=Key("item_id").eq(item_id)
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('item_id').eq(item_id)
         )
 
         items = response.get("Items", [])
 
-        if not items:
-            return {
-                "statusCode": 404,
-                "body": json.dumps({"error": "Item not found"})
-            }
+        # Convert Decimal to str for JSON
+        def decimal_default(obj):
+            if isinstance(obj, Decimal):
+                return str(obj)
+            raise TypeError
 
-        # Return first match
         return {
             "statusCode": 200,
-            "body": json.dumps(items[0], default=decimal_to_native)
+            "body": json.dumps(items, default=decimal_default)
         }
 
     except Exception as e:
         return {
             "statusCode": 500,
-            "body": json.dumps({"error": str(e)})
+            "body": json.dumps({"message": "Internal server error", "error": str(e)})
         }
