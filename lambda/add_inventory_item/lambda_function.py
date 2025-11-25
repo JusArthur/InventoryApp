@@ -5,6 +5,7 @@ from decimal import Decimal
 
 table = boto3.resource('dynamodb').Table('Inventory')
 
+# lambda handler
 def lambda_handler(event, context):
     print("EVENT:", event)  # Debug
 
