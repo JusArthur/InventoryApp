@@ -21,7 +21,7 @@ def lambda_handler(event, context):
             "item_description": body.get("item_description", ""),
             "item_qty_on_hand": int(body.get("item_qty_on_hand", 0)),
             "item_price": Decimal(str(body.get("item_price", 0))),
-            "item_location_id": int(body.get("item_location_id", 0))
+            "location_id": int(body.get("location_id", 0))
         }
 
         table.put_item(Item=new_item)
